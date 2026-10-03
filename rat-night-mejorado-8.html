@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>RAT NIGHT — Noche 1</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020202;color:#eee;font-family:Arial,sans-serif;user-select:none}
+button{font-family:monospace;font-weight:900;color:#eee;background:#161616;border:2px solid #777;border-radius:6px;cursor:pointer;box-shadow:0 3px 0 #050505;transition:.08s}
+button:active{transform:translateY(3px);box-shadow:none}
+#game{width:100%;height:100%;position:relative;overflow:hidden;background:#070707}
+#office{position:absolute;inset:0;overflow:hidden;background:
+radial-gradient(ellipse at 50% 35%,#303030 0%,#171717 36%,#050505 76%)}
+#office:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,#fff1 4px),radial-gradient(ellipse at center,transparent 30%,#000b 100%);opacity:.22;z-index:12}
+.wallSide{position:absolute;top:0;bottom:0;width:15%;background:#0d0d0d;box-shadow:inset 0 0 35px #000;z-index:2}
+.wallSide.left{left:0}.wallSide.right{right:0}
+.poster{position:absolute;top:13%;left:3%;width:9%;height:25%;border:2px solid #333;background:#251b16;color:#d0aa6b;text-align:center;padding:10px 3px;font:bold 12px monospace;transform:rotate(-3deg);z-index:3}
+.poster.right{left:auto;right:3%;transform:rotate(3deg)}
+#ceilingLight{position:absolute;top:2%;left:50%;transform:translateX(-50%);width:130px;height:42px;background:#ddd;border-radius:50%;box-shadow:0 0 45px 20px #ddd8;z-index:3}
+#desk{position:absolute;left:7%;right:7%;bottom:0;height:23%;background:linear-gradient(#3a3a3a,#101010 18%,#070707);border-top:7px solid #555;z-index:8;box-shadow:0 -12px 30px #000}
+#monitor{position:absolute;left:10%;top:12%;width:105px;height:75px;border:6px solid #111;background:#071009;box-shadow:inset 0 0 15px #0f0}
+#monitor:after{content:"CAM";position:absolute;inset:0;display:grid;place-items:center;color:#1f8;font:16px monospace;opacity:.7}
+#cup{position:absolute;right:12%;top:28%;width:42px;height:48px;background:#ddd;border-radius:4px 4px 14px 14px;box-shadow:inset 0 -10px #a33}
+#fan{position:absolute;left:50%;top:-55px;transform:translateX(-50%);width:120px;height:120px;border:8px solid #151515;border-radius:50%;background:#080808;z-index:10;box-shadow:0 0 10px #000}
+#fanBlade{position:absolute;inset:8px;border-radius:50%;animation:spin .65s linear infinite}
+#fanBlade:before,#fanBlade:after{content:"";position:absolute;left:50%;top:4px;width:15px;height:48px;background:#666;border-radius:50%;transform-origin:7px 52px}
+#fanBlade:before{transform:rotate(35deg)}#fanBlade:after{transform:rotate(-55deg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.door{position:absolute;top:12%;bottom:23%;width:18%;background:#050505;border:6px solid #111;z-index:6;transition:.15s;overflow:hidden}
+.door.left{left:0}.door.right{right:0}
+.door.closed{background:repeating-linear-gradient(0deg,#424242 0 11px,#222 11px 22px);box-shadow:inset 0 0 35px #000,0 0 25px #000}
+.door.closed:after{content:"LOCKED";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);font:bold 16px monospace;color:#aaa}
+.door.open:after{content:"";position:absolute;inset:0;background:#000}
+
+.lightRat{
+ position:absolute;
+ width:82px;
+ height:112px;
+ top:30%;
+ border-radius:48% 48% 42% 42%;
+ z-index:14;
+ display:none;
+ box-shadow:inset -12px -10px 16px #0009,inset 8px 5px 10px #fff3,0 0 25px #fff8;
+ animation:lightRatAppear .18s ease-out, lightRatBob 1.2s ease-in-out infinite alternate;
+}
+.lightRat.show{display:block}
+.lightRat.left{left:15%}.lightRat.right{right:15%}
+.lightRat:before,.lightRat:after{
+ content:"";position:absolute;top:-16px;width:30px;height:30px;
+ border-radius:50%;background:inherit;border:4px solid #111;
+ box-shadow:inset -5px -4px 8px #0008;
+}
+.lightRat:before{left:3px}.lightRat:after{right:3px}
+.lightRat .eye{
+ position:absolute;top:31px;width:11px;height:11px;background:#fff;
+ border-radius:50%;box-shadow:0 0 12px 4px #fff;
+}
+.lightRat .eye.l{left:19px}.lightRat .eye.r{right:19px}
+.lightRat .mouth{
+ position:absolute;left:19px;right:19px;bottom:18px;height:25px;
+ background:#080808;border-radius:4px;
+}
+@keyframes lightRatAppear{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes lightRatBob{to{transform:translateY(4px)}}
+
+.doorWarning{position:absolute;top:9%;z-index:15;color:#f33;font:900 12px monospace;opacity:0}
+.doorWarning.on{opacity:1;animation:blink .35s infinite}
+@keyframes blink{50%{opacity:.2}}
+.left .doorWarning{left:1%}.right .doorWarning{right:1%}
+
+#hud{position:absolute;top:12px;left:14px;z-index:30;font:18px monospace;text-shadow:2px 2px #000}
+#time{position:absolute;top:12px;right:14px;z-index:30;font:22px monospace;text-shadow:2px 2px #000}
+#usageBars{display:flex;gap:3px;margin-top:4px}
+.usage{width:12px;height:13px;background:#222;border:1px solid #555}
+.usage.on{background:#9f9}
+#message{position:absolute;top:52px;left:50%;transform:translateX(-50%);z-index:35;color:#ffd86b;font:bold 14px monospace;text-shadow:2px 2px #000;text-align:center}
+
+.controls{position:absolute;bottom:27%;z-index:20;display:flex;flex-direction:column;gap:7px}
+.controls.left{left:5px}.controls.right{right:5px}
+.controls button{width:110px;height:42px;font-size:11px}
+button.active{background:#aaa;color:#111;border-color:#eee}
+button.danger{border-color:#a33;color:#f88}
+button.cam{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);z-index:25;width:190px;height:48px;font-size:15px;background:#202020}
+button.cam.active{background:#ddd;color:#111}
+
+#camPanel{display:none;position:absolute;inset:4% 3% 12%;z-index:50;background:#090909ee;border:4px solid #777;box-shadow:0 0 50px #000;padding:10px}
+#camPanel.show{display:block;animation:panelIn .15s}
+@keyframes panelIn{from{transform:scale(.96);opacity:.4}to{transform:none;opacity:1}}
+#camTop{display:flex;justify-content:space-between;align-items:center;font:16px monospace;margin-bottom:7px}
+#camScreen{height:70%;position:relative;background:#151515;border:3px solid #555;overflow:hidden}
+#camScreen:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,#fff0 0 2px,#fff1 3px),repeating-linear-gradient(90deg,#fff0 0 5px,#fff1 6px);opacity:.18;z-index:10;pointer-events:none}
+#static{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#fff 0 1px,#000 1px 3px);mix-blend-mode:screen;opacity:.07;animation:static .1s steps(2) infinite}
+@keyframes static{50%{transform:translate(3px,-2px);opacity:.13}}
+#camText{position:absolute;top:7px;left:7px;background:#000b;padding:5px;font:13px monospace;z-index:12}
+#camRoom{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;font:28px monospace}
+.camRat{position:absolute;width:78px;height:105px;border-radius:48%;z-index:8;animation:ratBob .8s infinite alternate}
+@keyframes ratBob{to{transform:translateY(5px) rotate(1deg)}}
+.camRat:before,.camRat:after{content:"";position:absolute;top:-15px;width:29px;height:29px;border-radius:50%;background:inherit;border:4px solid #111}
+.camRat:before{left:2px}.camRat:after{right:2px}
+.camRat i{position:absolute;width:10px;height:10px;background:#eee;border-radius:50%;top:30px;box-shadow:0 0 8px #fff;z-index:2}
+.camRat i:nth-child(1){left:19px}.camRat i:nth-child(2){right:19px}
+.camRat b{position:absolute;left:19px;right:19px;bottom:17px;height:24px;background:#111;border-radius:4px}
+.brown{background-color:#75452d;background-image:repeating-linear-gradient(95deg,#9a654510 0 3px,#2b160c22 3px 7px),linear-gradient(135deg,#a66b45,#5b301e 55%,#2b160f)}
+.blue{background-color:#245a92;background-image:repeating-linear-gradient(95deg,#76aee018 0 3px,#071d3a25 3px 7px),linear-gradient(135deg,#4388c0,#17446f 55%,#0b2039)}
+.yellow{background-color:#b59b22;background-image:repeating-linear-gradient(95deg,#fff2a018 0 3px,#4b3c0725 3px 7px),linear-gradient(135deg,#d8c34b,#958014 55%,#5c4c0b)}
+.orange{background-color:#a65322;background-image:repeating-linear-gradient(95deg,#e99a5018 0 3px,#42170825 3px 7px),linear-gradient(135deg,#d87535,#91421c 55%,#4a1c0c)}
+.camMap{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:7px}
+.camMap button{height:40px;font-size:10px}
+.camMap button.selected{background:#ddd;color:#111;border-color:#fff}
+#powerOut{display:none;position:absolute;inset:0;background:#000;z-index:45}
+#powerOut.show{display:block;animation:powerFlash 1s infinite}
+@keyframes powerFlash{50%{opacity:.92}}
+#blackText{position:absolute;top:53%;left:50%;transform:translate(-50%,-50%);color:#222;font:24px monospace}
+#jumpscare{display:none;position:absolute;inset:0;z-index:100;background:#000;align-items:center;justify-content:center}
+#jumpscare.show{display:flex;animation:shake .08s infinite}
+@keyframes shake{50%{transform:translate(7px,-5px)}}
+#scareRat{
+ width:250px;height:330px;position:relative;transform:scale(1);animation:scareIn .4s;
+ border-radius:48% 48% 40% 40%;
+ box-shadow:inset -30px -25px 45px #0009,inset 20px 15px 30px #fff2,0 0 40px #000;
+ background-image:repeating-linear-gradient(100deg,#fff1 0 4px,#0001 4px 10px),linear-gradient(135deg,#fff2,transparent 35%,#0006);
+}
+@keyframes scareIn{from{transform:scale(.1);opacity:0}to{transform:scale(1);opacity:1}}
+#scareRat:before,#scareRat:after{content:"";position:absolute;top:-40px;width:90px;height:90px;border-radius:50%;background:inherit;border:9px solid #111}
+#scareRat:before{left:15px}.scareRat:after{right:15px}
+#scareRat .eye{position:absolute;top:85px;width:35px;height:35px;background:#fff;border-radius:50%;box-shadow:0 0 30px #fff}
+#scareRat .eye.l{left:58px}.scareRat .eye.r{right:58px}
+#scareRat .mouth{position:absolute;left:50px;right:50px;bottom:45px;height:85px;background:#050505;border-radius:10px}
+#scareText{position:absolute;bottom:12%;font:900 30px monospace;color:#f33;text-shadow:0 0 20px #f00}
+#start,#end{position:absolute;inset:0;z-index:200;pointer-events:auto;background:radial-gradient(circle,#252525,#030303 70%);display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px}
+#start h1,#end h1{font:900 46px monospace;margin:0 0 5px;text-shadow:0 0 18px #fff6}
+#start p,#end p{max-width:580px;color:#aaa;line-height:1.5}
+.bigBtn{font-size:18px;padding:15px 28px;margin-top:10px}
+#nightInfo{font:13px monospace;color:#777;margin-top:15px}
+@media(max-width:600px){
+ #hud{font-size:14px}#time{font-size:18px}.controls button{width:90px;height:39px;font-size:10px}
+ .door{width:21%}.poster{display:none}#monitor{width:70px;height:55px}
+ #camPanel{inset:2% 2% 10%}.camMap{grid-template-columns:repeat(4,1fr)}
+ #camScreen{height:64%}
+}
+
+/* ===== ANIMATRÓNICOS MEJORADOS ===== */
+.camRat,.lightRat{
+  position:absolute;
+  width:86px;
+  height:112px;
+  border-radius:48% 48% 42% 42%;
+  background:
+    radial-gradient(circle at 32% 22%,rgba(255,255,255,.18),transparent 12%),
+    radial-gradient(circle at 68% 24%,rgba(0,0,0,.22),transparent 18%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 2px,rgba(0,0,0,.06) 2px 4px),
+    linear-gradient(145deg,var(--rat1),var(--rat2) 55%,#151515);
+  border:3px solid rgba(0,0,0,.72);
+  box-shadow:
+    inset 7px 0 10px rgba(255,255,255,.08),
+    inset -9px -10px 15px rgba(0,0,0,.5),
+    0 7px 14px rgba(0,0,0,.55);
+  overflow:visible;
+  transform-origin:center bottom;
+  animation:ratBreath 2.4s ease-in-out infinite;
+}
+.camRat::before,.lightRat::before{
+  content:"";
+  position:absolute;
+  width:30px;height:30px;
+  left:-9px;top:-10px;
+  border-radius:50%;
+  background:radial-gradient(circle at 60% 60%,var(--rat2),var(--rat1));
+  border:3px solid rgba(0,0,0,.7);
+  box-shadow:inset 3px 3px 6px rgba(255,255,255,.12);
+}
+.camRat::after,.lightRat::after{
+  content:"";
+  position:absolute;
+  width:30px;height:30px;
+  right:-9px;top:-10px;
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 60%,var(--rat2),var(--rat1));
+  border:3px solid rgba(0,0,0,.7);
+  box-shadow:inset -3px 3px 6px rgba(255,255,255,.1);
+}
+.camRat .ratFace,.lightRat .ratFace{
+  position:absolute;
+  left:50%;top:25px;
+  transform:translateX(-50%);
+  width:72px;height:66px;
+  border-radius:46% 46% 43% 43%;
+}
+.camRat .eye,.lightRat .eye{
+  position:absolute;
+  top:9px;
+  width:17px;height:20px;
+  border-radius:50%;
+  background:#070707;
+  border:2px solid rgba(0,0,0,.9);
+  box-shadow:0 0 5px rgba(255,255,255,.08);
+}
+.camRat .eye.l,.lightRat .eye.l{left:10px}
+.camRat .eye.r,.lightRat .eye.r{right:10px}
+.camRat .eye::after,.lightRat .eye::after{
+  content:"";
+  position:absolute;
+  width:5px;height:6px;
+  border-radius:50%;
+  background:#fff;
+  left:4px;top:3px;
+  opacity:.9;
+}
+.camRat .snout,.lightRat .snout{
+  position:absolute;
+  left:50%;top:28px;
+  transform:translateX(-50%);
+  width:48px;height:32px;
+  border-radius:48%;
+  background:radial-gradient(circle at 50% 25%,rgba(255,255,255,.12),transparent 20%),
+             linear-gradient(145deg,var(--rat2),#202020);
+  border:2px solid rgba(0,0,0,.75);
+}
+.camRat .nose,.lightRat .nose{
+  position:absolute;
+  left:50%;top:24px;
+  transform:translateX(-50%);
+  width:13px;height:9px;
+  border-radius:50%;
+  background:#080808;
+  box-shadow:0 2px 3px rgba(255,255,255,.12);
+}
+.camRat .mouth,.lightRat .mouth{
+  position:absolute;
+  left:50%;top:43px;
+  transform:translateX(-50%);
+  width:42px;height:18px;
+  border-radius:8px 8px 15px 15px;
+  background:#080808;
+  border:2px solid #050505;
+  overflow:hidden;
+}
+.camRat .mouth::before,.lightRat .mouth::before{
+  content:"";
+  position:absolute;
+  left:5px;right:5px;top:1px;
+  height:7px;
+  background:#ddd;
+  clip-path:polygon(0 0,100% 0,92% 100%,78% 45%,62% 100%,48% 45%,32% 100%,18% 45%,6% 100%);
+}
+.camRat .wire,.lightRat .wire{
+  position:absolute;
+  width:34px;height:2px;
+  background:rgba(10,10,10,.75);
+  top:67px;
+  transform-origin:left;
+}
+.camRat .wire.a,.lightRat .wire.a{left:3px;transform:rotate(14deg)}
+.camRat .wire.b,.lightRat .wire.b{right:3px;transform:rotate(166deg)}
+.camRat .scratch,.lightRat .scratch{
+  position:absolute;
+  width:22px;height:2px;
+  background:rgba(255,255,255,.18);
+  transform:rotate(-20deg);
+  left:9px;top:78px;
+}
+.camRat .scratch.b,.lightRat .scratch.b{
+  left:auto;right:8px;top:88px;transform:rotate(18deg);
+}
+.camRat .metal,.lightRat .metal{
+  position:absolute;
+  bottom:5px;left:50%;
+  transform:translateX(-50%);
+  width:35px;height:10px;
+  border-radius:4px;
+  background:linear-gradient(#777,#222);
+  border:1px solid #111;
+  opacity:.75;
+}
+@keyframes ratBreath{
+  0%,100%{transform:scaleY(1) translateY(0)}
+  50%{transform:scaleY(1.025) translateY(-1px)}
+}
+.lightRat{
+  --rat1:#555;
+  --rat2:#1d1d1d;
+  width:118px;height:150px;
+  z-index:20;
+  filter:drop-shadow(0 0 9px rgba(255,255,220,.28));
+}
+.lightRat.brown{--rat1:#795548;--rat2:#2d1b14}
+.lightRat.blue{--rat1:#456da8;--rat2:#17243a}
+.lightRat.yellow{--rat1:#d1b83e;--rat2:#665a13}
+.lightRat.orange{--rat1:#c66a27;--rat2:#5a2911}
+.camRat.brown{--rat1:#795548;--rat2:#2d1b14}
+.camRat.blue{--rat1:#456da8;--rat2:#17243a}
+.camRat.yellow{--rat1:#d1b83e;--rat2:#665a13}
+.camRat.orange{--rat1:#c66a27;--rat2:#5a2911}
+
+</style>
+</head>
+<body>
+<div id="game">
+
+<div id="start">
+<h1>🐀 RAT NIGHT</h1>
+<p>Estás solo en la oficina. Las cuatro ratas animatrónicas se mueven durante la noche. Usa las cámaras, las luces y las puertas, pero cuida la energía.</p>
+<button class="bigBtn" onclick="startGame()">▶ COMENZAR NOCHE 1</button>
+<div id="nightInfo">12 AM → 6 AM · ¡NO DEJES QUE LLEGUEN A LA OFICINA!</div>
+</div>
+
+<div id="office">
+<div class="wallSide left"></div><div class="wallSide right"></div>
+<div class="poster">RAT<br>PARTY<br><br>LET'S<br>PLAY!</div>
+<div class="poster right">KEEP<br>WATCHING<br><br>🐀</div>
+<div id="ceilingLight"></div>
+
+<div class="door left" id="leftDoor"><span class="doorWarning" id="leftWarn">⚠ MOVIMIENTO</span></div>
+<div class="door right" id="rightDoor"><span class="doorWarning" id="rightWarn">⚠ MOVIMIENTO</span></div>
+
+<div id="leftLightRat" class="lightRat left">
+  <div class="ratFace"><i class="eye l"></i><i class="eye r"></i><i class="snout"></i><i class="nose"></i><i class="mouth"></i><i class="wire a"></i><i class="wire b"></i><i class="scratch"></i><i class="scratch b"></i></div><i class="metal"></i>
+</div>
+<div id="rightLightRat" class="lightRat right">
+  <div class="ratFace"><i class="eye l"></i><i class="eye r"></i><i class="snout"></i><i class="nose"></i><i class="mouth"></i><i class="wire a"></i><i class="wire b"></i><i class="scratch"></i><i class="scratch b"></i></div><i class="metal"></i>
+</div>
+
+<div class="controls left">
+<button id="leftDoorBtn" onclick="toggleDoor('left')">🚪 PUERTA IZQ.</button>
+<button id="leftLightBtn" onclick="toggleLight('left')">💡 LUZ IZQ.</button>
+</div>
+<div class="controls right">
+<button id="rightDoorBtn" onclick="toggleDoor('right')">🚪 PUERTA DER.</button>
+<button id="rightLightBtn" onclick="toggleLight('right')">💡 LUZ DER.</button>
+</div>
+
+<div id="desk">
+<div id="monitor"></div><div id="cup"></div>
+<div id="fan"><div id="fanBlade"></div></div>
+</div>
+</div>
+
+<div id="hud">ENERGÍA: <span id="power">100</span>%<br>USO:
+<div id="usageBars"><i class="usage on"></i><i class="usage"></i><i class="usage"></i><i class="usage"></i><i class="usage"></i></div></div>
+<div id="time">12 AM</div>
+<div id="message"></div>
+<button class="cam" id="cameraBtn" onclick="toggleCameras()">📹 ABRIR CÁMARAS</button>
+
+<div id="camPanel">
+<div id="camTop"><span id="camTitle">CAM 1 — ESCENARIO</span><button onclick="toggleCameras()">✕ CERRAR</button></div>
+<div id="camScreen"><div id="static"></div><div id="camRoom">ESCENARIO</div><div id="camText">SIN MOVIMIENTO</div></div>
+<div class="camMap">
+<button id="cam1" onclick="selectCam(1)">CAM 1<br>ESCENARIO</button>
+<button id="cam2" onclick="selectCam(2)">CAM 2<br>PASILLO IZQ.</button>
+<button id="cam3" onclick="selectCam(3)">CAM 3<br>PASILLO DER.</button>
+<button id="cam4" onclick="selectCam(4)">CAM 4<br>COMEDOR</button>
+<button id="cam5" onclick="selectCam(5)">CAM 5<br>ALMACÉN</button>
+<button id="cam6" onclick="selectCam(6)">CAM 6<br>BAÑOS</button>
+<button id="cam7" onclick="selectCam(7)">CAM 7<br>TRASERA</button>
+</div>
+</div>
+
+<div id="powerOut"><div id="blackText">SIN ENERGÍA...</div></div>
+
+<div id="jumpscare">
+<div id="scareRat" class="brown"><div class="ratFace"><i class="eye l"></i><i class="eye r"></i><i class="snout"></i><i class="nose"></i><i class="mouth"></i><i class="wire a"></i><i class="wire b"></i><i class="scratch"></i><i class="scratch b"></i></div><i class="metal"></i></div>
+<div id="scareText">¡TE ATRAPARON!</div>
+</div>
+
+<div id="end">
+<h1 id="endTitle"></h1><p id="endMsg"></p>
+<button class="bigBtn" onclick="restartGame()">↻ JUGAR DE NUEVO</button>
+</div>
+</div>
+
+<script>
+let running=false,power=100,seconds=0,cameras=false,currentCam=1;
+let leftDoor=false,rightDoor=false,leftLight=false,rightLight=false,powerOut=false;
+let clockTimer,moveTimer,blackoutTimer,messageTimer;
+let audioCtx;
+const camNames={1:"ESCENARIO",2:"PASILLO IZQUIERDO",3:"PASILLO DERECHO",4:"COMEDOR",5:"ALMACÉN",6:"BAÑOS",7:"PUERTA TRASERA"};
+const rats={
+ brown:{name:"Rata Marrón",color:"brown",pos:1,side:"left"},
+ blue:{name:"Rata Azul",color:"blue",pos:1,side:"left"},
+ yellow:{name:"Rata Amarilla",color:"yellow",pos:1,side:"right"},
+ orange:{name:"Rata Naranja",color:"orange",pos:1,side:"right"}
+};
+
+function sound(type){
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  let f=type==="click"?180:type==="door"?75:type==="light"?320:type==="camera"?520:type==="danger"?110:210;
+  o.frequency.value=f;o.type=type==="danger"?"sawtooth":"square";
+  g.gain.setValueAtTime(.035,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.12);
+  o.start();o.stop(audioCtx.currentTime+.13);
+ }catch(e){}
+}
+function noiseSound(){
+ try{
+  if(!audioCtx)return;
+  const buffer=audioCtx.createBuffer(1,audioCtx.sampleRate*.12,audioCtx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.18;
+  const s=audioCtx.createBufferSource(),g=audioCtx.createGain();
+  s.buffer=buffer;s.connect(g);g.connect(audioCtx.destination);g.gain.value=.35;s.start();
+ }catch(e){}
+}
+function startGame(){
+ audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ sound("click");
+ document.getElementById("start").style.display="none";
+ running=true;
+ clockTimer=setInterval(tick,1000);
+ moveTimer=setInterval(moveRats,6500);
+ update();
+ showMessage("NOCHE 1 — BUENA SUERTE");
+}
+function tick(){
+ if(!running)return;
+ seconds++;
+ let h=Math.floor(seconds/45);
+ if(h>=6){win();return}
+ let drain=.11+(leftDoor?.09:0)+(rightDoor?.09:0)+(leftLight?.07:0)+(rightLight?.07:0)+(cameras?.055:0);
+ power-=drain;
+ if(power<=0){power=0;shutdown();}
+ update();
+}
+function moveRats(){
+ if(!running||powerOut)return;
+
+ Object.values(rats).forEach(r=>{
+  let blocked = r.side==="left" ? leftDoor : rightDoor;
+
+  // Si la puerta está cerrada y la rata llegó al final,
+  // retrocede varios lugares en vez de quedarse pegada.
+  if(r.pos>=5 && blocked){
+    r.pos=2;
+    sound("door");
+    showMessage("🔒 "+r.name+" retrocedió de la puerta.");
+    return;
+  }
+
+  let chance=.48 + Math.min(seconds/500,.25);
+
+  // A veces una rata que está cerca de la puerta decide retirarse.
+  if(r.pos>=4 && Math.random()<.28){
+    r.pos=Math.max(2,r.pos-1);
+  }else if(Math.random()<chance && r.pos<5){
+    r.pos++;
+  }else if(Math.random()<.18 && r.pos>1){
+    r.pos--;
+  }
+
+  if(r.pos>=5 && !blocked && Math.random()<.42){
+    lose(r);
+    return;
+  }
+ });
+
+ // Actualizar los avisos según la posición REAL de las ratas.
+ let leftNear=Object.values(rats).some(r=>r.side==="left"&&r.pos>=4);
+ let rightNear=Object.values(rats).some(r=>r.side==="right"&&r.pos>=4);
+ document.getElementById("leftWarn").classList.toggle("on",leftNear);
+ document.getElementById("rightWarn").classList.toggle("on",rightNear);
+
+ updateLightRat("left");
+ updateLightRat("right");
+
+ noiseSound();
+ if(cameras)renderCam();
+}
+function toggleDoor(side){
+ if(!running||powerOut)return;
+ sound("door");
+ if(side==="left"){
+  leftDoor=!leftDoor;
+  document.getElementById("leftDoor").classList.toggle("closed",leftDoor);
+  document.getElementById("leftDoorBtn").classList.toggle("active",leftDoor);
+  if(leftDoor){
+    Object.values(rats).forEach(r=>{if(r.side==="left"&&r.pos>=4)r.pos=2});
+    document.getElementById("leftWarn").classList.remove("on");
+    updateLightRat("left");
+    showMessage("🔒 PUERTA IZQUIERDA CERRADA");
+  }
+ }else{
+  rightDoor=!rightDoor;
+  document.getElementById("rightDoor").classList.toggle("closed",rightDoor);
+  document.getElementById("rightDoorBtn").classList.toggle("active",rightDoor);
+  if(rightDoor){
+    Object.values(rats).forEach(r=>{if(r.side==="right"&&r.pos>=4)r.pos=2});
+    document.getElementById("rightWarn").classList.remove("on");
+    updateLightRat("right");
+    showMessage("🔒 PUERTA DERECHA CERRADA");
+  }
+ }
+ update();
+}
+function toggleLight(side){
+ if(!running||powerOut)return;
+ sound("light");
+ if(side==="left"){leftLight=!leftLight;document.getElementById("leftLightBtn").classList.toggle("active",leftLight);flashLight("left",leftLight)}
+ else{rightLight=!rightLight;document.getElementById("rightLightBtn").classList.toggle("active",rightLight);flashLight("right",rightLight)}
+ update();
+}
+
+function updateLightRat(side){
+ const el=document.getElementById(side+"LightRat");
+ const isOn=side==="left"?leftLight:rightLight;
+ const near=Object.values(rats).find(r=>r.side===side&&r.pos>=4);
+ if(isOn && near){
+   el.className="lightRat "+side+" "+near.color+" show";
+ }else{
+   el.className="lightRat "+side;
+ }
+}
+
+function flashLight(side,on){
+ updateLightRat(side);
+ let d=document.getElementById(side+"Door");
+ d.style.boxShadow=on?"inset 0 0 50px #fff,0 0 35px #fff":"";
+ setTimeout(()=>{if(!document.getElementById(side+"LightBtn").classList.contains("active"))d.style.boxShadow=""},120);
+ let near=Object.values(rats).find(r=>r.side===side&&r.pos>=4);
+ if(on&&near)showMessage("👀 "+near.name+" ESTÁ AHÍ");
+}
+function toggleCameras(){
+ if(!running||powerOut)return;
+ cameras=!cameras;sound("camera");
+ document.getElementById("camPanel").classList.toggle("show",cameras);
+ document.getElementById("cameraBtn").classList.toggle("active",cameras);
+ if(cameras)renderCam();
+ update();
+}
+function selectCam(n){
+ currentCam=n;sound("click");renderCam();
+ document.querySelectorAll(".camMap button").forEach(b=>b.classList.remove("selected"));
+ document.getElementById("cam"+n).classList.add("selected");
+}
+function renderCam(){
+ const screen=document.getElementById("camScreen");
+ screen.querySelectorAll(".camRat").forEach(e=>e.remove());
+ document.getElementById("camTitle").textContent="CAM "+currentCam+" — "+camNames[currentCam];
+ document.getElementById("camRoom").textContent=camNames[currentCam];
+ let found=Object.values(rats).filter(r=>r.pos===currentCam);
+ let txt=document.getElementById("camText");
+ txt.textContent=found.length?found.map(r=>r.name).join(" / "):"SIN MOVIMIENTO";
+ found.forEach((r,i)=>{
+  const e=document.createElement("div");
+  e.className="camRat "+r.color;
+  e.style.left=(22+i*27)+"%";e.style.top=(34+(i%2)*12)+"%";
+  e.innerHTML="<i></i><i></i><b></b>";
+  screen.appendChild(e);
+ });
+}
+
+function restartGame(){
+  // Detener cualquier partida/temporizador anterior
+  running=false;
+  clearInterval(clockTimer);
+  clearInterval(moveTimer);
+  clearTimeout(blackoutTimer);
+  clearTimeout(messageTimer);
+
+  // Reiniciar valores
+  power=100;
+  seconds=0;
+  cameras=false;
+  currentCam=1;
+  leftDoor=false;
+  rightDoor=false;
+  leftLight=false;
+  rightLight=false;
+  powerOut=false;
+
+  rats.brown.pos=1;
+  rats.blue.pos=1;
+  rats.yellow.pos=1;
+  rats.orange.pos=1;
+
+  // Restablecer pantalla
+  document.getElementById("end").style.display="none";
+  document.getElementById("jumpscare").classList.remove("show");
+  document.getElementById("powerOut").classList.remove("show");
+  document.getElementById("camPanel").classList.remove("show");
+  document.getElementById("cameraBtn").classList.remove("active");
+
+  // Restablecer puertas
+  document.getElementById("leftDoor").classList.remove("closed");
+  document.getElementById("rightDoor").classList.remove("closed");
+  document.getElementById("leftDoorBtn").classList.remove("active");
+  document.getElementById("rightDoorBtn").classList.remove("active");
+
+  // Restablecer luces
+  document.getElementById("leftLightBtn").classList.remove("active");
+  document.getElementById("rightLightBtn").classList.remove("active");
+  document.getElementById("leftDoor").style.boxShadow="";
+  document.getElementById("rightDoor").style.boxShadow="";
+
+  document.getElementById("leftWarn").classList.remove("on");
+  document.getElementById("rightWarn").classList.remove("on");
+
+  // Limpiar ratas de las cámaras
+  document.querySelectorAll(".camRat").forEach(e=>e.remove());
+  document.getElementById("camText").textContent="SIN MOVIMIENTO";
+
+  update();
+  running=true;
+
+  if(audioCtx && audioCtx.state==="suspended") audioCtx.resume();
+  sound("click");
+  showMessage("NOCHE 1 — ¡EMPEZAMOS DE NUEVO!");
+
+  clockTimer=setInterval(tick,1000);
+  moveTimer=setInterval(moveRats,6500);
+}
+
+function shutdown(){
+ powerOut=true;leftDoor=false;rightDoor=false;cameras=false;
+ document.getElementById("powerOut").classList.add("show");
+ document.getElementById("camPanel").classList.remove("show");
+ document.getElementById("cameraBtn").classList.remove("active");
+ sound("danger");
+ clearTimeout(blackoutTimer);
+ blackoutTimer=setTimeout(()=>{if(running)lose(rats.brown)},6500);
+ showMessage("⚠ SIN ENERGÍA");
+}
+function update(){
+ document.getElementById("power").textContent=Math.max(0,Math.floor(power));
+ let u=1+(leftDoor?1:0)+(rightDoor?1:0)+(leftLight?1:0)+(rightLight?1:0)+(cameras?1:0);
+ document.querySelectorAll(".usage").forEach((x,i)=>x.classList.toggle("on",i<u));
+ let h=Math.floor(seconds/45);
+ document.getElementById("time").textContent=(h===0?"12":h)+" AM";
+}
+function showMessage(t){
+ const m=document.getElementById("message");m.textContent=t;
+ clearTimeout(messageTimer);messageTimer=setTimeout(()=>m.textContent="",1700);
+}
+function lose(r){
+ if(!running)return;
+ running=false;clearInterval(clockTimer);clearInterval(moveTimer);
+ document.getElementById("scareRat").className=r.color;
+ document.getElementById("jumpscare").classList.add("show");
+ sound("danger");
+ setTimeout(()=>{
+  document.getElementById("jumpscare").classList.remove("show");
+  document.getElementById("end").style.display="flex";
+  document.getElementById("endTitle").textContent="NOCHE TERMINADA";
+  document.getElementById("endMsg").textContent=r.name+" llegó a la oficina. La noche duró "+seconds+" segundos.";
+ },1300);
+}
+function win(){
+ if(!running)return;
+ running=false;clearInterval(clockTimer);clearInterval(moveTimer);
+ document.getElementById("end").style.display="flex";
+ document.getElementById("endTitle").textContent="¡6 AM! 🎉";
+ document.getElementById("endMsg").textContent="Sobreviviste la Noche 1 con "+Math.floor(power)+"% de energía.";
+ sound("click");
+}
+</script>
+</body>
+</html>
